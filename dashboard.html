@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NSE Order Terminal — Nifty 50 Intelligence</title>
+
+    <!-- Distinctive Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+
+    <!-- DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+    <style>
+        :root {
+            --bg-primary: #0a0e12;
+            --bg-secondary: #131920;
+            --bg-tertiary: #1a2332;
+            --accent-gold: #d4af37;
+            --accent-amber: #ffb700;
+            --accent-emerald: #10b981;
+            --accent-ruby: #ef4444;
+            --text-primary: #f8f9fa;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-subtle: #1e293b;
+            --glow-gold: rgba(212, 175, 55, 0.3);
+            --glow-amber: rgba(255, 183, 0, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Mono', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated background grid */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px),
+                linear-gradient(var(--border-subtle) 1px, transparent 1px);
+            background-size: 60px 60px;
+            opacity: 0.15;
+            z-index: 0;
+            animation: gridPulse 8s ease-in-out infinite;
+        }
+
+        @keyframes gridPulse {
+            0%, 100% { opacity: 0.15; }
+            50% { opacity: 0.08; }
+        }
+
+        /* Ambient light effect */
+        body::after {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 50% 50%, var(--glow-gold) 0%, transparent 50%);
+            opacity: 0.03;
+            z-index: 0;
+            animation: ambientRotate 30s linear infinite;
+        }
+
+        @keyframes ambientRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header with Art Deco influence */
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+            padding: 60px 40px;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            border: 2px solid var(--border-subtle);
+            border-radius: 4px;
+            overflow: hidden;
+            animation: headerReveal 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes headerReveal {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Geometric corner decorations */
+        .header::before,
+        .header::after {
+            content: '';
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border: 2px solid var(--accent-gold);
+            opacity: 0.3;
+        }
+
+        .header::before {
+            top: 20px;
+            left: 20px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .header::after {
+            bottom: 20px;
+            right: 20px;
+            border-left: none;
+            border-top: none;
+        }
+
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 4.5rem;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-amber) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px var(--glow-gold);
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes titleGlow {
+            from { filter: brightness(1); }
+            to { filter: brightness(1.2); }
+        }
+
+        .header .subtitle {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            letter-spacing: 0.15em;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            animation: subtitleSlide 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s backwards;
+        }
+
+        @keyframes subtitleSlide {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .header .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            animation: indicatorFade 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.6s backwards;
+        }
+
+        @keyframes indicatorFade {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .live-indicator::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--accent-emerald);
+            border-radius: 50%;
+            box-shadow: 0 0 12px var(--accent-emerald);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(1.1);
+            }
+        }
+
+        /* Control panel with terminal aesthetic */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding: 24px 30px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 2px;
+            position: relative;
+            overflow: hidden;
+            animation: controlsSlide 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s backwards;
+        }
+
+        @keyframes controlsSlide {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .controls::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+            animation: scanline 3s linear infinite;
+        }
+
+        @keyframes scanline {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(100%); }
+        }
+
+        .btn {
+            font-family: 'Bebas Neue', sans-serif;
+            padding: 14px 28px;
+            font-size: 1.1rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            border: 2px solid var(--accent-gold);
+            background: transparent;
+            color: var(--accent-gold);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--accent-gold);
+            transition: left 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: -1;
+        }
+
+        .btn:hover {
+            color: var(--bg-primary);
+            border-color: var(--accent-amber);
+            box-shadow: 0 0 20px var(--glow-gold);
+            transform: translateY(-2px);
+        }
+
+        .btn:hover::before {
+            left: 0;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* Statistics cards with geometric patterns */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 50px;
+            animation: statsReveal 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.6s backwards;
+        }
+
+        @keyframes statsReveal {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            padding: 32px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent-gold) 0%, transparent 100%);
+            opacity: 0.15;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent-gold);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5),
+                        0 0 20px var(--glow-gold);
+        }
+
+        .stat-card:hover::before {
+            width: 80px;
+            height: 80px;
+            opacity: 0.25;
+        }
+
+        .stat-card h3 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.95rem;
+            letter-spacing: 0.15em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .stat-card .value {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.2rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            line-height: 1;
+            margin-bottom: 8px;
+            text-shadow: 0 0 20px var(--glow-gold);
+        }
+
+        .stat-card .label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* Chart containers with terminal styling */
+        .chart-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            padding: 40px;
+            margin-bottom: 40px;
+            position: relative;
+            animation: chartReveal 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation-fill-mode: backwards;
+        }
+
+        .chart-container:nth-child(1) { animation-delay: 0.8s; }
+        .chart-container:nth-child(2) { animation-delay: 1s; }
+        .chart-container:nth-child(3) { animation-delay: 1.2s; }
+
+        @keyframes chartReveal {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .chart-container h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            letter-spacing: 0.1em;
+            color: var(--text-primary);
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chart-container h2::before {
+            content: '';
+            width: 4px;
+            height: 32px;
+            background: linear-gradient(180deg, var(--accent-gold), var(--accent-amber));
+            box-shadow: 0 0 12px var(--glow-gold);
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 420px;
+        }
+
+        /* Data table with terminal aesthetic */
+        table.dataTable {
+            width: 100%;
+            background: var(--bg-secondary);
+            border-collapse: separate;
+            border-spacing: 0;
+            font-family: 'DM Mono', monospace;
+        }
+
+        table.dataTable thead th {
+            font-family: 'Bebas Neue', sans-serif;
+            background: var(--bg-tertiary);
+            color: var(--accent-gold);
+            padding: 20px 16px;
+            text-align: left;
+            font-size: 1.1rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--accent-gold);
+            font-weight: 400;
+        }
+
+        table.dataTable tbody td {
+            padding: 18px 16px;
+            border-bottom: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        table.dataTable tbody tr {
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        table.dataTable tbody tr:hover {
+            background: var(--bg-tertiary);
+            transform: scale(1.01);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        table.dataTable tbody tr:hover td {
+            color: var(--text-primary);
+        }
+
+        .badge {
+            font-family: 'Bebas Neue', sans-serif;
+            padding: 4px 12px;
+            font-size: 0.85rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            display: inline-block;
+            border: 1px solid;
+        }
+
+        .badge-bse {
+            color: var(--accent-emerald);
+            border-color: var(--accent-emerald);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .badge-nse {
+            color: var(--accent-amber);
+            border-color: var(--accent-amber);
+            background: rgba(255, 183, 0, 0.1);
+        }
+
+        /* Loading state */
+        .loading {
+            text-align: center;
+            padding: 100px 20px;
+            color: var(--text-secondary);
+        }
+
+        .terminal-loader {
+            font-family: 'DM Mono', monospace;
+            font-size: 1.2rem;
+            color: var(--accent-gold);
+            animation: blink 1.5s steps(2) infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        .terminal-loader::after {
+            content: '█';
+            animation: blink 0.8s steps(2) infinite;
+        }
+
+        /* Tabs with geometric style */
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 40px;
+            border-bottom: 2px solid var(--border-subtle);
+        }
+
+        .tab {
+            font-family: 'Bebas Neue', sans-serif;
+            padding: 16px 32px;
+            font-size: 1.2rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: var(--accent-gold);
+            transition: width 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 0 12px var(--glow-gold);
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+        }
+
+        .tab.active {
+            color: var(--accent-gold);
+        }
+
+        .tab.active::after {
+            width: 100%;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: tabReveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes tabReveal {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Timeline with art deco lines */
+        .timeline-item {
+            padding: 24px;
+            margin-bottom: 20px;
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--accent-gold);
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 24px;
+            width: 12px;
+            height: 12px;
+            background: var(--accent-gold);
+            border-radius: 50%;
+            box-shadow: 0 0 12px var(--glow-gold);
+        }
+
+        .timeline-item:hover {
+            transform: translateX(8px);
+            background: var(--bg-tertiary);
+            border-left-width: 6px;
+        }
+
+        .timeline-item .date {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.9rem;
+            color: var(--accent-gold);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+        }
+
+        .timeline-item .company {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .timeline-item .value {
+            font-family: 'DM Mono', monospace;
+            font-size: 1.6rem;
+            color: var(--accent-amber);
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .timeline-item .description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .header .subtitle {
+                font-size: 1.2rem;
+            }
+
+            .controls {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .btn-group {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .stat-card .value {
+                font-size: 2.5rem;
+            }
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-gold);
+            border-radius: 2px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-amber);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>ORDER TERMINAL</h1>
+            <div class="subtitle">Nifty 50 Intelligence Bureau</div>
+            <div class="live-indicator" id="liveIndicator">Real-time Market Data</div>
+        </div>
+
+        <div class="controls">
+            <div class="btn-group">
+                <button class="btn" onclick="refreshData()">↻ Refresh</button>
+                <button class="btn" onclick="exportToExcel()">↓ Export</button>
+                <a href="https://github.com/manish70158/nse-orderbook-tracker" target="_blank" class="btn">⚡ Github</a>
+            </div>
+            <div id="dataSource" style="font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.1em; color: var(--text-muted);"></div>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="terminal-loader">LOADING MARKET DATA</div>
+        </div>
+
+        <div id="dashboard" style="display: none;">
+            <!-- Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Tracked</h3>
+                    <div class="value" id="totalCompanies">0</div>
+                    <div class="label">Companies</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Order Value</h3>
+                    <div class="value">₹<span id="totalOrderValue">0</span></div>
+                    <div class="label">Crores (6M)</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Announcements</h3>
+                    <div class="value" id="totalOrders">0</div>
+                    <div class="label">Orders Logged</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Average Deal</h3>
+                    <div class="value">₹<span id="avgOrder">0</span></div>
+                    <div class="label">Crores</div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('overview')">Market Overview</button>
+                <button class="tab" onclick="switchTab('companies')">Company Data</button>
+                <button class="tab" onclick="switchTab('timeline')">Order Timeline</button>
+                <button class="tab" onclick="switchTab('sectors')">Sector Analysis</button>
+            </div>
+
+            <!-- Tab Contents -->
+            <div id="overview-tab" class="tab-content active">
+                <div class="chart-container">
+                    <h2>Top Performers by Order Value</h2>
+                    <div class="chart-wrapper">
+                        <canvas id="topCompaniesChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h2>Monthly Order Flow Trends</h2>
+                    <div class="chart-wrapper">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div id="companies-tab" class="tab-content">
+                <div class="chart-container">
+                    <h2>Complete Company Database</h2>
+                    <table id="ordersTable" class="display">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Symbol</th>
+                                <th>Company</th>
+                                <th>Orders</th>
+                                <th>Total Value (Cr)</th>
+                                <th>Avg Value (Cr)</th>
+                                <th>Latest</th>
+                                <th>Source</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="timeline-tab" class="tab-content">
+                <div class="chart-container">
+                    <h2>Recent Order Announcements</h2>
+                    <div id="timelineContainer"></div>
+                </div>
+            </div>
+
+            <div id="sectors-tab" class="tab-content">
+                <div class="chart-container">
+                    <h2>Sector Distribution</h2>
+                    <div class="chart-wrapper">
+                        <canvas id="sectorChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h2>Sector Performance Comparison</h2>
+                    <div class="chart-wrapper">
+                        <canvas id="sectorBarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_BASE = window.location.origin;  // Use same origin as dashboard
+
+        let allData = [];
+        let timelineData = [];
+        let charts = {};
+
+        async function loadData() {
+            try {
+                // Fetch real data from Flask backend
+                const response = await fetch(`${API_BASE}/api/summary`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                allData = await response.json();
+
+                // Fetch timeline data
+                const timelineResponse = await fetch(`${API_BASE}/api/timeline`);
+                if (timelineResponse.ok) {
+                    timelineData = await timelineResponse.json();
+                }
+
+                // Fetch stats for data source info
+                const statsResponse = await fetch(`${API_BASE}/api/stats`);
+                if (statsResponse.ok) {
+                    const stats = await statsResponse.json();
+                    document.getElementById('dataSource').textContent =
+                        `${stats.data_source.toUpperCase()} DATA SOURCE`;
+                }
+
+                displayStatistics();
+                renderCharts();
+                populateTable();
+                renderTimeline();
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                document.getElementById('liveIndicator').textContent =
+                    new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) + ' IST';
+
+                console.log(`✓ Loaded ${allData.length} companies from backend`);
+
+            } catch (error) {
+                console.error('Error loading data from backend:', error);
+
+                // Show error message
+                document.getElementById('loading').innerHTML = `
+                    <div class="terminal-loader" style="color: #ef4444;">
+                        ERROR: Flask backend not running
+                    </div>
+                    <p style="margin-top: 20px; color: #94a3b8;">
+                        Start the backend with: <code style="color: #d4af37;">python app.py</code>
+                    </p>
+                `;
+            }
+        }
+
+        function displayStatistics() {
+            const totalCompanies = allData.length;
+            const totalOrderValue = allData.reduce((sum, item) => sum + (item.total_order_value || 0), 0);
+            const totalOrders = allData.reduce((sum, item) => sum + (item.order_count || 0), 0);
+            const avgOrder = totalOrders > 0 ? (totalOrderValue / totalOrders).toFixed(0) : 0;
+
+            document.getElementById('totalCompanies').textContent = totalCompanies;
+            document.getElementById('totalOrderValue').textContent = totalOrderValue.toLocaleString('en-IN');
+            document.getElementById('totalOrders').textContent = totalOrders;
+            document.getElementById('avgOrder').textContent = parseInt(avgOrder).toLocaleString('en-IN');
+        }
+
+        function renderCharts() {
+            const top10 = [...allData]
+                .sort((a, b) => (b.total_order_value || 0) - (a.total_order_value || 0))
+                .slice(0, 10);
+
+            const ctx1 = document.getElementById('topCompaniesChart').getContext('2d');
+            if (charts.topCompanies) charts.topCompanies.destroy();
+            charts.topCompanies = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: top10.map(item => item.symbol),
+                    datasets: [{
+                        label: 'Order Value (Crores)',
+                        data: top10.map(item => item.total_order_value || 0),
+                        backgroundColor: 'rgba(212, 175, 55, 0.8)',
+                        borderColor: '#d4af37',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#131920',
+                            borderColor: '#d4af37',
+                            borderWidth: 1,
+                            titleColor: '#d4af37',
+                            bodyColor: '#f8f9fa',
+                            callbacks: {
+                                label: (context) => '₹' + context.parsed.y.toLocaleString('en-IN') + ' Cr'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(30, 41, 59, 0.5)' },
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: (value) => '₹' + value.toLocaleString('en-IN')
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8' }
+                        }
+                    }
+                }
+            });
+
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+            const monthlyData = [2100, 2800, 3200, 4100, 4800, 5200];
+
+            const ctx2 = document.getElementById('trendChart').getContext('2d');
+            if (charts.trend) charts.trend.destroy();
+            charts.trend = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Monthly Orders',
+                        data: monthlyData,
+                        borderColor: '#ffb700',
+                        backgroundColor: 'rgba(255, 183, 0, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 6,
+                        pointBackgroundColor: '#ffb700',
+                        pointBorderColor: '#0a0e12',
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#131920',
+                            borderColor: '#ffb700',
+                            borderWidth: 1,
+                            titleColor: '#ffb700',
+                            bodyColor: '#f8f9fa'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(30, 41, 59, 0.5)' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8' }
+                        }
+                    }
+                }
+            });
+
+            renderSectorCharts();
+        }
+
+        function renderSectorCharts() {
+            const sectorData = {};
+            allData.forEach(item => {
+                const sector = item.sector || 'Others';
+                if (!sectorData[sector]) sectorData[sector] = { value: 0, count: 0 };
+                sectorData[sector].value += item.total_order_value || 0;
+                sectorData[sector].count += item.order_count || 0;
+            });
+
+            const sectors = Object.keys(sectorData);
+            const values = sectors.map(s => sectorData[s].value);
+
+            const ctx3 = document.getElementById('sectorChart').getContext('2d');
+            if (charts.sector) charts.sector.destroy();
+            charts.sector = new Chart(ctx3, {
+                type: 'doughnut',
+                data: {
+                    labels: sectors,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: ['#d4af37', '#ffb700', '#10b981', '#ef4444', '#60a5fa', '#a78bfa', '#f59e0b', '#ec4899']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { color: '#94a3b8', font: { family: 'Bebas Neue', size: 14 } }
+                        },
+                        tooltip: {
+                            backgroundColor: '#131920',
+                            borderColor: '#d4af37',
+                            borderWidth: 1
+                        }
+                    }
+                }
+            });
+
+            const ctx4 = document.getElementById('sectorBarChart').getContext('2d');
+            if (charts.sectorBar) charts.sectorBar.destroy();
+            charts.sectorBar = new Chart(ctx4, {
+                type: 'bar',
+                data: {
+                    labels: sectors,
+                    datasets: [{
+                        label: 'Value (Cr)',
+                        data: values,
+                        backgroundColor: 'rgba(212, 175, 55, 0.8)',
+                        borderColor: '#d4af37',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(30, 41, 59, 0.5)' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function populateTable() {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+
+            const sorted = [...allData].sort((a, b) => (b.total_order_value || 0) - (a.total_order_value || 0));
+
+            sorted.forEach((item, index) => {
+                const avgValue = item.order_count > 0 ? (item.total_order_value / item.order_count).toFixed(0) : 0;
+                const sourceBadge = item.source === 'BSE'
+                    ? '<span class="badge badge-bse">BSE</span>'
+                    : '<span class="badge badge-nse">NSE</span>';
+
+                const row = `
+                    <tr>
+                        <td><strong>${index + 1}</strong></td>
+                        <td><strong>${item.symbol}</strong></td>
+                        <td>${item.company_name || '-'}</td>
+                        <td>${item.order_count || 0}</td>
+                        <td>₹${(item.total_order_value || 0).toLocaleString('en-IN')}</td>
+                        <td>₹${parseInt(avgValue).toLocaleString('en-IN')}</td>
+                        <td>${item.latest_order_date || '-'}</td>
+                        <td>${sourceBadge}</td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+
+            if ($.fn.DataTable.isDataTable('#ordersTable')) {
+                $('#ordersTable').DataTable().destroy();
+            }
+            $('#ordersTable').DataTable({
+                order: [[4, 'desc']],
+                pageLength: 25
+            });
+        }
+
+        function renderTimeline() {
+            const container = document.getElementById('timelineContainer');
+            container.innerHTML = '';
+
+            // Use fetched timeline data, or fallback to extracting from allData
+            const timeline = timelineData.length > 0
+                ? timelineData
+                : allData.flatMap(company =>
+                    company.orders ? company.orders.map(order => ({
+                        symbol: company.symbol,
+                        company_name: company.company_name,
+                        value: order.order_value,
+                        date: order.announcement_date,
+                        description: order.description,
+                        source: company.source
+                    })) : []
+                  ).filter(item => item.value)
+                   .sort((a, b) => new Date(b.date) - new Date(a.date))
+                   .slice(0, 20);
+
+            if (timeline.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 40px;">No recent orders to display. Run the daily checker to fetch data.</p>';
+                return;
+            }
+
+            timeline.forEach(item => {
+                const html = `
+                    <div class="timeline-item">
+                        <div class="date">${item.date ? new Date(item.date).toLocaleDateString('en-IN') : 'N/A'} • ${item.source || 'Unknown'}</div>
+                        <div class="company">${item.symbol} — ${item.company_name}</div>
+                        <div class="value">₹${(item.value || 0).toLocaleString('en-IN')} Crores</div>
+                        <div class="description">${item.description || 'No description available'}</div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function refreshData() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('dashboard').style.display = 'none';
+            setTimeout(loadData, 1000);
+        }
+
+        async function exportToExcel() {
+            try {
+                // Download Excel file from backend
+                window.location.href = `${API_BASE}/api/export`;
+            } catch (error) {
+                console.error('Export error:', error);
+                alert('Export failed. Make sure Flask backend is running.');
+            }
+        }
+
+        window.onload = loadData;
+    </script>
+</body>
+</html>

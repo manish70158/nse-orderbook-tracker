@@ -13,7 +13,7 @@ import logging
 # Add scripts directory to path
 sys.path.insert(0, os.path.dirname(__file__))
 
-from nse_data_fetcher import NSEFetcher
+from unified_data_fetcher import UnifiedDataFetcher
 from value_extractor import OrderValueExtractor
 from telegram_notifier import TelegramNotifier
 
@@ -28,7 +28,7 @@ class DailyOrderChecker:
     """Orchestrates daily order checking and notification"""
 
     def __init__(self):
-        self.nse_fetcher = NSEFetcher()
+        self.data_fetcher = UnifiedDataFetcher(prefer_bse=True)
         self.value_extractor = OrderValueExtractor()
         self.telegram = TelegramNotifier()
         self.cache_file = 'processed_announcements.json'
@@ -61,17 +61,19 @@ class DailyOrderChecker:
 
             # Fetch Nifty 50 companies
             logger.info("Fetching Nifty 50 companies...")
-            companies = self.nse_fetcher.fetch_nifty50_companies()
+            companies = self.data_fetcher.fetch_nifty50_companies()
             nifty50_symbols = {comp['symbol'] for comp in companies}
             logger.info(f"Tracking {len(nifty50_symbols)} companies")
+            logger.info(f"Data source: {self.data_fetcher.last_successful_source}")
 
-            # Fetch announcements
-            logger.info("Fetching NSE announcements...")
-            announcements = self.nse_fetcher.fetch_announcements()
+            # Fetch announcements (tries BSE first, falls back to NSE)
+            logger.info("Fetching announcements from available sources...")
+            announcements = self.data_fetcher.fetch_announcements(days_back=30)
             logger.info(f"Retrieved {len(announcements)} total announcements")
+            logger.info(f"Primary source: {self.data_fetcher.last_successful_source}")
 
             # Filter for order-related announcements
-            order_announcements = self.nse_fetcher.filter_order_announcements(
+            order_announcements = self.data_fetcher.filter_order_announcements(
                 announcements,
                 nifty50_symbols
             )
@@ -106,8 +108,8 @@ class DailyOrderChecker:
                     'announcement_date': ann.get('an_dt'),
                     'description': ann.get('attchmntText', '')[:500],  # Limit length
                     'order_value': value_info['value'] if value_info else None,
-                    'pdf_url': self.nse_fetcher.get_announcement_pdf_url(ann),
-                    'source': 'NSE'
+                    'pdf_url': self.data_fetcher.get_announcement_pdf_url(ann),
+                    'source': ann.get('source', 'Unknown')
                 }
 
                 new_orders.append(order)
