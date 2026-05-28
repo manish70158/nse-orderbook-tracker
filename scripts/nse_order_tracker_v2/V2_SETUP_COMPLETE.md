@@ -15,7 +15,9 @@
 
 3. **Telegram Notifications** ✨
    - Automatically sends alerts for high-value orders (≥₹500 Cr)
+   - **NEW:** Attaches PDF files to Telegram messages
    - Filters and groups orders by value threshold
+   - Each PDF includes company name and value caption
    - Requires `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` env variables
 
 4. **Automatic PDF Cleanup** 🧹

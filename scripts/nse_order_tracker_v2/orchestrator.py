@@ -322,16 +322,18 @@ class OrderBookOrchestrator:
                         'order_value': value,
                         'description': item.get('subject', ''),
                         'announcement_date': item.get('announcement_date', ''),
-                        'pdf_url': item.get('pdf_url', '')
+                        'pdf_url': item.get('pdf_url', ''),
+                        'pdf_path': item.get('local_pdf_path', '')  # For PDF attachments
                     })
 
-            # Send summary notification
+            # Send summary notification with PDF attachments
             if telegram_orders:
                 date_range = f"{summary['date_range']['start']} to {summary['date_range']['end']}"
                 success = self.notifier.send_order_summary(
                     telegram_orders,
                     date=date_range,
-                    filter_by_value=True
+                    filter_by_value=True,
+                    attach_pdfs=True
                 )
 
                 if success:

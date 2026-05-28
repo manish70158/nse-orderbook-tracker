@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
 Telegram Notifier - Send order book updates via Telegram
-Enhanced with 500 crore threshold filtering
+Enhanced with 500 crore threshold filtering and PDF attachments
 """
 
 import os
 import requests
+from pathlib import Path
 from typing import List, Dict, Optional
 import logging
 from datetime import datetime
@@ -67,6 +68,48 @@ class TelegramNotifier:
             logger.error(f"Failed to send Telegram message: {e}")
             return False
 
+    def send_document(self, file_path: str, caption: Optional[str] = None,
+                     parse_mode: str = "HTML") -> bool:
+        """
+        Send a document (PDF) to Telegram
+
+        Args:
+            file_path: Path to the document file
+            caption: Optional caption for the document (supports HTML or Markdown)
+            parse_mode: 'HTML' or 'Markdown'
+
+        Returns:
+            True if successful, False otherwise
+        """
+        url = f"{self.api_url}/sendDocument"
+
+        file_path_obj = Path(file_path)
+        if not file_path_obj.exists():
+            logger.error(f"File not found: {file_path}")
+            return False
+
+        try:
+            with open(file_path, 'rb') as document:
+                files = {'document': (file_path_obj.name, document, 'application/pdf')}
+                data = {
+                    'chat_id': self.chat_id,
+                    'parse_mode': parse_mode
+                }
+
+                if caption:
+                    data['caption'] = caption
+
+                response = requests.post(url, data=data, files=files, timeout=30)
+                response.raise_for_status()
+                logger.info(f"Document sent successfully: {file_path_obj.name}")
+                return True
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to send document {file_path}: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"Error reading file {file_path}: {e}")
+            return False
+
     def filter_high_value_orders(self, orders: List[Dict]) -> List[Dict]:
         """
         Filter orders above value threshold
@@ -85,14 +128,15 @@ class TelegramNotifier:
         return high_value
 
     def send_order_summary(self, orders: List[Dict], date: Optional[str] = None,
-                          filter_by_value: bool = True) -> bool:
+                          filter_by_value: bool = True, attach_pdfs: bool = True) -> bool:
         """
-        Send formatted order summary
+        Send formatted order summary with optional PDF attachments
 
         Args:
-            orders: List of order dictionaries
+            orders: List of order dictionaries (should include 'pdf_path' key if attach_pdfs=True)
             date: Date string for the summary (default: today)
             filter_by_value: Whether to filter by value threshold (default: True)
+            attach_pdfs: Whether to attach PDF files (default: True)
 
         Returns:
             True if successful
@@ -135,16 +179,41 @@ class TelegramNotifier:
             message += f"💎 <b>Total Value: ₹{total_value:.2f} Crores</b>\n"
 
         message += f"\n🔔 Showing orders ≥ ₹{self.value_threshold} Cr only"
-        message += f"\n🤖 <i>Automated update from NSE Order Book Tracker</i>"
 
-        return self.send_message(message)
+        # Send the summary message first
+        if not self.send_message(message):
+            return False
 
-    def send_company_alert(self, company_order: Dict) -> bool:
+        # Send PDFs if enabled and available
+        if attach_pdfs:
+            pdfs_sent = 0
+            for order in filtered_orders:
+                pdf_path = order.get('pdf_path')
+                if pdf_path and Path(pdf_path).exists():
+                    symbol = order.get('symbol', 'Unknown')
+                    company = order.get('company_name', symbol)
+                    value = order.get('order_value', 0)
+
+                    caption = f"📄 <b>{symbol}</b> - {company}\n"
+                    caption += f"💰 ₹{value:.2f} Crores"
+
+                    if self.send_document(pdf_path, caption=caption):
+                        pdfs_sent += 1
+                    else:
+                        logger.warning(f"Failed to send PDF for {symbol}")
+
+            if pdfs_sent > 0:
+                logger.info(f"Sent {pdfs_sent} PDF attachment(s)")
+
+        return True
+
+    def send_company_alert(self, company_order: Dict, attach_pdf: bool = True) -> bool:
         """
-        Send alert for a specific company's order (only if above threshold)
+        Send alert for a specific company's order (only if above threshold) with optional PDF
 
         Args:
-            company_order: Order dictionary
+            company_order: Order dictionary (should include 'pdf_path' key if attach_pdf=True)
+            attach_pdf: Whether to attach the PDF file (default: True)
 
         Returns:
             True if successful, False if below threshold or error
@@ -174,7 +243,21 @@ class TelegramNotifier:
         message += f"⚠️ This order exceeds ₹{self.value_threshold} Cr threshold\n"
         message += f"🤖 <i>NSE Order Book Tracker</i>"
 
-        return self.send_message(message)
+        # Send the alert message
+        if not self.send_message(message):
+            return False
+
+        # Send PDF if enabled and available
+        if attach_pdf:
+            pdf_path = company_order.get('pdf_path')
+            if pdf_path and Path(pdf_path).exists():
+                caption = f"📄 <b>{symbol}</b> - {company}\n💰 ₹{value:.2f} Crores"
+                if self.send_document(pdf_path, caption=caption):
+                    logger.info(f"PDF attached for {symbol}")
+                else:
+                    logger.warning(f"Failed to attach PDF for {symbol}")
+
+        return True
 
     def send_daily_digest(self, summary_stats: Dict, include_all: bool = False) -> bool:
         """
