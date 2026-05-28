@@ -1,0 +1,20 @@
+{
+  "total_announcements": 1,
+  "orders_with_values": 1,
+  "total_value_crores": 121.04,
+  "average_order_value": 121.04,
+  "max_order_value": 121.04,
+  "min_order_value": 121.04,
+  "unique_companies": 1,
+  "date_range": {
+    "start": "2026-05-28",
+    "end": "2026-05-28"
+  },
+  "generated_at": "2026-05-29T00:14:27.091342",
+  "top_companies": [
+    [
+      "LIKHITHA",
+      121.04
+    ]
+  ]
+}

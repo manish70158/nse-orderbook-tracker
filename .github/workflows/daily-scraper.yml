@@ -1,0 +1,68 @@
+name: Daily NSE Order Book Scraper V2 (API-based)
+
+on:
+  schedule:
+    # Run every day at 9:30 AM IST (4:00 AM UTC)
+    - cron: '0 4 * * *'
+
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  scrape-and-update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          cd scripts/nse_order_tracker_v2
+          pip install -r requirements.txt
+
+      - name: Run V2 API scraper
+        run: |
+          cd scripts/nse_order_tracker_v2
+          python orchestrator.py --days 3
+        env:
+          PYTHONUNBUFFERED: 1
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: orderbook-data-v2
+          path: |
+            scripts/nse_order_tracker_v2/output/*.json
+            scripts/nse_order_tracker_v2/output/*.xlsx
+          retention-days: 30
+
+      - name: Commit and push if changed
+        run: |
+          git config --global user.name 'GitHub Actions Bot'
+          git config --global user.email 'actions@github.com'
+          cd scripts/nse_order_tracker_v2
+          git add output/*.json output/*.xlsx downloads/nse_pdfs/*.pdf || true
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update V2 order book data (3 days) - $(date +'%Y-%m-%d %H:%M:%S')" && git push)
+
+      - name: Send notification on failure
+        if: failure()
+        run: |
+          echo "V2 API scraper failed. Check the logs for details."
+          # Telegram notifications are sent by the orchestrator for successes
