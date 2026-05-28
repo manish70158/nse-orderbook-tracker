@@ -18,7 +18,13 @@
    - Filters and groups orders by value threshold
    - Requires `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` env variables
 
-4. **V1 Workflow Disabled**
+4. **Automatic PDF Cleanup** 🧹
+   - Deletes PDFs older than 7 days (configurable)
+   - Prevents disk space accumulation
+   - Runs automatically before each scraping job
+   - Logs files deleted and space freed
+
+5. **V1 Workflow Disabled**
    - Old browser automation workflow marked as DISABLED
    - V2 GitHub Actions workflow updated to use API-based scraper
 
@@ -167,6 +173,7 @@ Options:
   --days INT              Days to look back (default: 3)
   --search TEXT           Search term (default: "awarding of order")
   --threshold FLOAT       Order value threshold in Crores (default: 500)
+  --retention-days INT    Days to keep old PDFs before cleanup (default: 7)
   --telegram              Enable Telegram notifications (default: enabled)
   --no-telegram           Disable Telegram notifications
   --output-dir PATH       Output directory (default: output)
@@ -176,6 +183,7 @@ Examples:
   python orchestrator.py --days 7 --threshold 1000
   python orchestrator.py --search "merger" --no-telegram
   python orchestrator.py --days 1 --output-dir results
+  python orchestrator.py --days 3 --retention-days 14  # Keep PDFs for 14 days
 ```
 
 ---

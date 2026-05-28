@@ -5,8 +5,9 @@ Orchestrator - Main pipeline that coordinates scraping, parsing, and data proces
 
 import logging
 import json
+import os
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Dict
 import pandas as pd
 
@@ -29,7 +30,8 @@ class OrderBookOrchestrator:
         download_dir: str = 'downloads/nse_pdfs',
         output_dir: str = 'output',
         enable_telegram: bool = True,
-        value_threshold: float = 500.0
+        value_threshold: float = 500.0,
+        pdf_retention_days: int = 7
     ):
         """
         Initialize orchestrator
@@ -39,11 +41,14 @@ class OrderBookOrchestrator:
             output_dir: Directory for output files
             enable_telegram: Enable Telegram notifications
             value_threshold: Minimum order value for alerts (in Crores)
+            pdf_retention_days: Days to keep old PDFs (default: 7)
         """
         self.scraper = NSEAPIScraper(download_dir=download_dir)
         self.parser = PDFParser()
+        self.download_dir = Path(download_dir)
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.pdf_retention_days = pdf_retention_days
 
         self.announcements: List[Dict] = []
         self.parsed_orders: Dict[str, OrderInfo] = {}
@@ -60,6 +65,43 @@ class OrderBookOrchestrator:
             except ValueError as e:
                 logger.warning(f"Telegram notifications disabled: {e}")
                 self.telegram_enabled = False
+
+    def cleanup_old_pdfs(self):
+        """
+        Clean up PDF files older than retention period
+
+        Deletes PDFs from download directory that are older than
+        pdf_retention_days to prevent disk space accumulation.
+        """
+        if not self.download_dir.exists():
+            return
+
+        cutoff_date = datetime.now() - timedelta(days=self.pdf_retention_days)
+        deleted_count = 0
+        total_size = 0
+
+        logger.info(f"Cleaning up PDFs older than {self.pdf_retention_days} days (before {cutoff_date.strftime('%Y-%m-%d')})")
+
+        for pdf_file in self.download_dir.glob("*.pdf"):
+            try:
+                # Get file modification time
+                file_mtime = datetime.fromtimestamp(pdf_file.stat().st_mtime)
+
+                if file_mtime < cutoff_date:
+                    file_size = pdf_file.stat().st_size
+                    pdf_file.unlink()
+                    deleted_count += 1
+                    total_size += file_size
+                    logger.debug(f"Deleted: {pdf_file.name} (modified: {file_mtime.strftime('%Y-%m-%d')})")
+
+            except Exception as e:
+                logger.warning(f"Failed to delete {pdf_file.name}: {e}")
+
+        if deleted_count > 0:
+            size_mb = total_size / (1024 * 1024)
+            logger.info(f"✓ Cleaned up {deleted_count} old PDF(s), freed {size_mb:.2f} MB")
+        else:
+            logger.info("✓ No old PDFs to clean up")
 
     def scrape_announcements(
         self,
@@ -324,6 +366,9 @@ class OrderBookOrchestrator:
         logger.info(f"Search: '{search_term}', Days: {days_back}\n")
 
         try:
+            # Step 0: Cleanup old PDFs
+            self.cleanup_old_pdfs()
+
             # Step 1: Scrape announcements
             self.scrape_announcements(search_term, days_back)
 
@@ -378,6 +423,7 @@ def main():
     parser.add_argument('--days', type=int, default=3, help='Days to look back (default: 3)')
     parser.add_argument('--search', type=str, default='awarding of order', help='Search term (default: "awarding of order")')
     parser.add_argument('--threshold', type=float, default=500, help='Order value threshold in Crores (default: 500)')
+    parser.add_argument('--retention-days', type=int, default=7, help='Days to keep old PDFs before cleanup (default: 7)')
     parser.add_argument('--telegram', action='store_true', default=True, help='Enable Telegram notifications (default: enabled)')
     parser.add_argument('--no-telegram', action='store_true', help='Disable Telegram notifications')
     parser.add_argument('--output-dir', type=str, default='output', help='Output directory (default: output)')
@@ -392,7 +438,8 @@ def main():
         download_dir=args.download_dir,
         output_dir=args.output_dir,
         enable_telegram=enable_telegram,
-        value_threshold=args.threshold
+        value_threshold=args.threshold,
+        pdf_retention_days=args.retention_days
     )
 
     orchestrator.run(
