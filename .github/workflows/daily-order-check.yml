@@ -1,71 +1,20 @@
-name: Daily Order Book Check
+# DISABLED - V1 workflow replaced by daily-scraper-v2.yml
+# This workflow has been disabled in favor of the new V2 API-based scraper
+# To re-enable, remove this comment block and the "if: false" condition below
+
+name: Daily Order Book Check (V1 - DISABLED)
 
 on:
-  # Run daily at 9:30 AM IST (4:00 AM UTC)
-  schedule:
-    - cron: '0 4 * * *'
-
-  # Allow manual trigger
+  # Disabled by default
   workflow_dispatch:
-
-  # Run on push for testing
-  push:
-    branches:
-      - main
-    paths:
-      - 'scripts/**'
-      - '.github/workflows/daily-order-check.yml'
 
 jobs:
   check-orders:
     runs-on: ubuntu-latest
+    if: false  # Disabled - use V2 scraper instead
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: 'pip'
-
-      - name: Install dependencies
+      - name: Disabled
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Cache processed announcements
-        uses: actions/cache@v4
-        with:
-          path: scripts/processed_announcements.json
-          key: processed-announcements-${{ github.run_id }}
-          restore-keys: |
-            processed-announcements-
-
-      - name: Run order checker
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: |
-          cd scripts
-          python daily_order_checker.py
-
-      - name: Upload logs on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: error-logs
-          path: |
-            scripts/*.log
-            scripts/processed_announcements.json
-          retention-days: 7
-
-      - name: Commit processed announcements
-        if: success()
-        run: |
-          cd scripts
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add processed_announcements.json || true
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Update processed announcements [skip ci]" && git push)
+          echo "This V1 workflow is disabled. Use daily-scraper-v2.yml instead."
+          exit 1
