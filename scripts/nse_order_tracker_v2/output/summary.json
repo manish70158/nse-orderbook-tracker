@@ -1,20 +1,56 @@
 {
-  "total_announcements": 1,
-  "orders_with_values": 1,
-  "total_value_crores": 121.04,
-  "average_order_value": 121.04,
-  "max_order_value": 121.04,
-  "min_order_value": 121.04,
-  "unique_companies": 1,
+  "total_announcements": 60,
+  "orders_with_values": 44,
+  "total_value_crores": 5279389979.3,
+  "average_order_value": 119986135.89318182,
+  "max_order_value": 1159028904.0,
+  "min_order_value": 0.19,
+  "unique_companies": 37,
   "date_range": {
-    "start": "2026-05-28",
-    "end": "2026-05-28"
+    "start": "2026-03-02",
+    "end": "2026-05-29"
   },
-  "generated_at": "2026-05-29T00:14:27.091342",
+  "generated_at": "2026-05-30T14:08:51.112171",
   "top_companies": [
     [
-      "LIKHITHA",
-      121.04
+      "ABINFRA",
+      2212625832.08
+    ],
+    [
+      "VASCONEQ",
+      1159028904.0
+    ],
+    [
+      "INNOVISION",
+      1120184270.0
+    ],
+    [
+      "PROTEAN",
+      226025562.0
+    ],
+    [
+      "WEWIN",
+      194400000.0
+    ],
+    [
+      "GULPOLY",
+      187072000.0
+    ],
+    [
+      "MARSONS",
+      153834500.31
+    ],
+    [
+      "PIGL",
+      26192342.0
+    ],
+    [
+      "OSWALPUMPS",
+      22162.06
+    ],
+    [
+      "DBL",
+      1850.0
     ]
   ]
 }

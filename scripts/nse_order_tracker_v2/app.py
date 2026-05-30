@@ -22,6 +22,10 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app)
 
+# Configure for longer requests (data fetching can take time)
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max request size
+
 # Configuration
 DATA_FILE = Path('output/orderbook_data.json')
 SUMMARY_FILE = Path('output/summary.json')
@@ -376,6 +380,45 @@ def health_check():
     })
 
 
+@app.route('/api/pdf/<filename>')
+def serve_pdf(filename):
+    """Serve PDF files from downloads directory"""
+    try:
+        pdf_dir = Path('downloads/nse_pdfs')
+        pdf_path = pdf_dir / filename
+
+        # Security: Ensure file is within pdf directory (prevent directory traversal)
+        if not pdf_path.resolve().is_relative_to(pdf_dir.resolve()):
+            logger.warning(f"Attempted directory traversal: {filename}")
+            return jsonify({
+                'success': False,
+                'error': 'Invalid file path'
+            }), 403
+
+        # Check if file exists
+        if not pdf_path.exists():
+            logger.warning(f"PDF not found: {filename}")
+            return jsonify({
+                'success': False,
+                'error': 'PDF file not found'
+            }), 404
+
+        # Serve the PDF file
+        return send_file(
+            pdf_path,
+            mimetype='application/pdf',
+            as_attachment=False,  # Display in browser, not download
+            download_name=filename
+        )
+
+    except Exception as e:
+        logger.error(f"Error serving PDF {filename}: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
 @app.route('/api/refresh', methods=['POST'])
 def refresh_data():
     """Trigger data refresh (placeholder for future automation)"""
@@ -383,6 +426,109 @@ def refresh_data():
         'success': True,
         'message': 'Manual refresh not yet implemented. Run orchestrator.py to update data.'
     })
+
+
+@app.route('/api/fetch-data', methods=['POST'])
+def fetch_data():
+    """
+    Fetch fresh data from NSE API for specified date range
+    Expects JSON: {"days": 7, "threshold": 500, "enable_telegram": false}
+    """
+    try:
+        # Get parameters from request
+        data = request.get_json() or {}
+        days = data.get('days', 7)
+        threshold = data.get('threshold', 500)
+        enable_telegram = data.get('enable_telegram', False)
+
+        # Validate days parameter
+        if not isinstance(days, int) or days < 1 or days > 365:
+            return jsonify({
+                'success': False,
+                'error': 'Days must be between 1 and 365'
+            }), 400
+
+        logger.info("="*80)
+        logger.info(f"API FETCH REQUEST: {days} days, threshold: {threshold} Cr")
+        logger.info("="*80)
+
+        # Import orchestrator modules
+        try:
+            from orchestrator import OrderBookOrchestrator
+            logger.info("✓ Orchestrator module imported successfully")
+        except ImportError as e:
+            logger.error(f"✗ Failed to import orchestrator: {e}")
+            return jsonify({
+                'success': False,
+                'error': 'Orchestrator module not found. Ensure orchestrator.py is in the same directory.'
+            }), 500
+
+        # Create orchestrator instance
+        try:
+            logger.info(f"Creating orchestrator instance (Telegram: {enable_telegram})...")
+            orchestrator = OrderBookOrchestrator(
+                enable_telegram=enable_telegram,
+                value_threshold=threshold
+            )
+            logger.info("✓ Orchestrator instance created")
+        except Exception as e:
+            logger.error(f"✗ Failed to create orchestrator: {e}", exc_info=True)
+            return jsonify({
+                'success': False,
+                'error': f'Failed to initialize orchestrator: {str(e)}'
+            }), 500
+
+        # Run the pipeline
+        try:
+            logger.info(f"Starting orchestrator pipeline for {days} days...")
+            logger.info("This may take 10-60 seconds depending on the date range...")
+
+            # Run with explicit parameter name
+            orchestrator.run(
+                search_term="awarding of order",
+                days_back=days
+            )
+
+            logger.info("✓ Orchestrator pipeline completed successfully")
+        except Exception as e:
+            logger.error(f"✗ Orchestrator pipeline failed: {e}", exc_info=True)
+            return jsonify({
+                'success': False,
+                'error': f'Pipeline execution failed: {str(e)}'
+            }), 500
+
+        # Load the fresh data
+        try:
+            logger.info("Loading fresh data from output files...")
+            fresh_data = load_data()
+            fresh_summary = load_summary()
+
+            logger.info(f"✓ Loaded {len(fresh_data)} announcements")
+            logger.info(f"✓ Total value: ₹{fresh_summary.get('total_value_crores', 0):.2f} Cr")
+            logger.info("="*80)
+
+        except Exception as e:
+            logger.error(f"✗ Failed to load data: {e}", exc_info=True)
+            return jsonify({
+                'success': False,
+                'error': f'Failed to load processed data: {str(e)}'
+            }), 500
+
+        return jsonify({
+            'success': True,
+            'message': f'Successfully fetched {len(fresh_data)} announcements from last {days} days',
+            'data': fresh_data,
+            'summary': fresh_summary,
+            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'days_fetched': days
+        })
+
+    except Exception as e:
+        logger.error(f"✗ Unexpected error in fetch_data endpoint: {e}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'error': f'Unexpected error: {str(e)}'
+        }), 500
 
 
 if __name__ == '__main__':
@@ -397,4 +543,4 @@ if __name__ == '__main__':
     logger.info("API Docs: http://localhost:5000/api/health")
     logger.info("="*60)
 
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)

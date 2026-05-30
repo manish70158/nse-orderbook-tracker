@@ -196,6 +196,32 @@
             color: #856404;
         }
 
+        .pdf-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(102, 126, 234, 0.3);
+        }
+
+        .pdf-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+
+        .no-pdf-text {
+            color: #bdc3c7;
+            font-size: 1.2em;
+        }
+
         .no-data {
             text-align: center;
             padding: 40px;
@@ -219,6 +245,379 @@
             background: #2980b9;
         }
 
+        .filter-section {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .filter-label {
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 1em;
+        }
+
+        .index-dropdown {
+            padding: 12px 20px;
+            border: 2px solid #667eea;
+            border-radius: 25px;
+            background: white;
+            color: #2c3e50;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+            min-width: 200px;
+        }
+
+        .index-dropdown:hover {
+            border-color: #764ba2;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .index-dropdown:focus {
+            border-color: #764ba2;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        .index-dropdown option {
+            padding: 10px;
+        }
+
+        .date-filter-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .date-dropdown {
+            padding: 12px 20px;
+            border: 2px solid #3498db;
+            border-radius: 25px;
+            background: white;
+            color: #2c3e50;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+            min-width: 200px;
+        }
+
+        .date-dropdown:hover {
+            border-color: #2980b9;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .date-dropdown:focus {
+            border-color: #2980b9;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .custom-date-inputs {
+            display: none;
+            gap: 10px;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .custom-date-inputs.show {
+            display: flex;
+        }
+
+        .date-input {
+            padding: 10px 15px;
+            border: 2px solid #95a5a6;
+            border-radius: 20px;
+            background: white;
+            color: #2c3e50;
+            font-size: 0.9em;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .date-input:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .apply-date-btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 20px;
+            background: #3498db;
+            color: white;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .apply-date-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .fetch-data-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .fetch-data-btn:hover {
+            background: #229954;
+            transform: translateY(-2px);
+        }
+
+        .fetch-data-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .fetch-data-btn .spinner {
+            display: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        .fetch-data-btn.loading .spinner {
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 90%;
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #95a5a6;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            color: #e74c3c;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-group input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input[type="number"]:focus {
+            border-color: #3498db;
+        }
+
+        .form-group small {
+            display: block;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        .quick-select {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .quick-btn {
+            padding: 8px 16px;
+            border: 2px solid #3498db;
+            background: white;
+            color: #3498db;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .quick-btn:hover {
+            background: #3498db;
+            color: white;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-cancel {
+            padding: 12px 24px;
+            border: 2px solid #95a5a6;
+            background: white;
+            color: #2c3e50;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-cancel:hover {
+            background: #ecf0f1;
+        }
+
+        .btn-fetch {
+            padding: 12px 24px;
+            border: none;
+            background: #27ae60;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-fetch:hover {
+            background: #229954;
+        }
+
+        .btn-fetch:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .status-message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .status-message.show {
+            display: block;
+        }
+
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 1.8em;
@@ -234,6 +633,72 @@
 
             th, td {
                 padding: 10px;
+                font-size: 0.85em;
+            }
+
+            .pdf-link {
+                padding: 6px 12px;
+                font-size: 0.75em;
+            }
+
+            .filter-section {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .filter-controls {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .filter-group {
+                width: 100%;
+            }
+
+            .index-dropdown,
+            .date-dropdown {
+                width: 100%;
+                min-width: unset;
+            }
+
+            .custom-date-inputs {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .date-input {
+                width: 100%;
+            }
+
+            .apply-date-btn {
+                width: 100%;
+            }
+
+            .fetch-data-btn {
+                width: 100%;
+                margin-top: 10px;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+            }
+
+            .quick-select {
+                flex-direction: column;
+            }
+
+            .quick-btn {
+                width: 100%;
+            }
+
+            .modal-footer {
+                flex-direction: column;
+            }
+
+            .btn-cancel,
+            .btn-fetch {
+                width: 100%;
             }
         }
     </style>
@@ -245,7 +710,81 @@
             <h1>📊 NSE Order Book Tracker</h1>
             <p>Real-time tracking of NSE corporate order announcements</p>
             <div class="timestamp">Last Updated: {{ timestamp }}</div>
-            <button class="refresh-btn" onclick="window.location.reload()">🔄 Refresh Data</button>
+
+            <!-- Filter Controls -->
+            <div class="filter-section">
+                <div class="filter-controls">
+                    <!-- Index Filter -->
+                    <div class="filter-group">
+                        <label for="indexSelect" class="filter-label">Filter by Index:</label>
+                        <select id="indexSelect" class="index-dropdown" onchange="handleIndexChange(this.value)">
+                            <option value="all" selected>All Indices</option>
+                            <option value="nifty50">Nifty 50</option>
+                            <option value="nifty500">Nifty 500</option>
+                            <option value="niftymidcap">Nifty Midcap</option>
+                            <option value="niftysmallcap">Nifty Smallcap</option>
+                        </select>
+                    </div>
+
+                    <!-- Date Filter -->
+                    <div class="filter-group">
+                        <label for="dateSelect" class="filter-label">Filter by Date:</label>
+                        <div class="date-filter-container">
+                            <select id="dateSelect" class="date-dropdown" onchange="handleDateFilterChange(this.value)">
+                                <option value="all" selected>All Dates</option>
+                                <option value="1week">Last 1 Week</option>
+                                <option value="2weeks">Last 2 Weeks</option>
+                                <option value="1month">Last 1 Month</option>
+                                <option value="3months">Last 3 Months</option>
+                                <option value="custom">Custom Date Range</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Date Range Inputs (Hidden by default) -->
+                <div id="customDateInputs" class="custom-date-inputs">
+                    <label for="startDate" class="filter-label">From:</label>
+                    <input type="date" id="startDate" class="date-input">
+                    <label for="endDate" class="filter-label">To:</label>
+                    <input type="date" id="endDate" class="date-input">
+                    <button class="apply-date-btn" onclick="applyCustomDateRange()">Apply</button>
+                </div>
+            </div>
+
+            <button class="refresh-btn" onclick="window.location.reload()">🔄 Refresh Page</button>
+            <button class="fetch-data-btn" onclick="openFetchModal()">
+                <span class="spinner"></span>
+                📡 Fetch Fresh Data
+            </button>
+        </div>
+
+        <!-- Fetch Data Modal -->
+        <div id="fetchModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Fetch Fresh Data from NSE</h2>
+                    <button class="close-btn" onclick="closeFetchModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="daysInput">Number of Days to Fetch:</label>
+                        <input type="number" id="daysInput" min="1" max="365" value="7" placeholder="Enter days (1-365)">
+                        <small>How many days of historical data to fetch from NSE API</small>
+                    </div>
+                    <div class="quick-select">
+                        <button class="quick-btn" onclick="setDays(7)">1 Week</button>
+                        <button class="quick-btn" onclick="setDays(14)">2 Weeks</button>
+                        <button class="quick-btn" onclick="setDays(30)">1 Month</button>
+                        <button class="quick-btn" onclick="setDays(90)">3 Months</button>
+                    </div>
+                    <div id="fetchStatus" class="status-message"></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-cancel" onclick="closeFetchModal()">Cancel</button>
+                    <button class="btn-fetch" id="fetchBtn" onclick="fetchFreshData()">Fetch Data</button>
+                </div>
+            </div>
         </div>
 
         <!-- Summary Cards -->
@@ -289,6 +828,7 @@
                         <th>Order Value</th>
                         <th>Subject</th>
                         <th>Status</th>
+                        <th>PDF Link</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -314,6 +854,15 @@
                                 <span class="badge warning">⚠ No PDF</span>
                             {% endif %}
                         </td>
+                        <td>
+                            {% if order.local_pdf_path %}
+                                <a href="/api/pdf/{{ order.local_pdf_path.split('/')[-1] }}" target="_blank" class="pdf-link" title="Open PDF in new tab">
+                                    📄 View PDF
+                                </a>
+                            {% else %}
+                                <span class="no-pdf-text">—</span>
+                            {% endif %}
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -325,5 +874,427 @@
             {% endif %}
         </div>
     </div>
+
+    <script>
+        // Define index constituents (add actual symbols for each index)
+        const indexMapping = {
+            'nifty50': [
+                'RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'ICICIBANK', 'HINDUNILVR', 'ITC', 'SBIN',
+                'BHARTIARTL', 'KOTAKBANK', 'LT', 'AXISBANK', 'ASIANPAINT', 'MARUTI', 'TITAN',
+                'SUNPHARMA', 'ULTRACEMCO', 'BAJFINANCE', 'NESTLEIND', 'WIPRO', 'HCLTECH',
+                'ADANIENT', 'ONGC', 'NTPC', 'POWERGRID', 'TATAMOTORS', 'COALINDIA', 'M&M',
+                'TATASTEEL', 'BAJAJFINSV', 'TECHM', 'INDUSINDBK', 'DIVISLAB', 'ADANIPORTS',
+                'DRREDDY', 'JSWSTEEL', 'CIPLA', 'GRASIM', 'APOLLOHOSP', 'BAJAJ-AUTO',
+                'TATACONSUM', 'BRITANNIA', 'HINDALCO', 'HEROMOTOCO', 'EICHERMOT', 'SHRIRAMFIN',
+                'BPCL', 'LTIM', 'SBILIFE', 'HDFCLIFE'
+            ],
+            'nifty500': [], // Nifty 500 includes all stocks - we'll handle this separately
+            'niftymidcap': [], // Add midcap symbols
+            'niftysmallcap': [] // Add smallcap symbols
+        };
+
+        // Current filter state
+        let currentIndexFilter = 'all';
+        let currentDateFilter = 'all';
+        let customStartDate = null;
+        let customEndDate = null;
+
+        // Date filter change handler
+        function handleDateFilterChange(selectedPeriod) {
+            currentDateFilter = selectedPeriod;
+
+            // Show/hide custom date inputs
+            const customInputs = document.getElementById('customDateInputs');
+            if (selectedPeriod === 'custom') {
+                customInputs.classList.add('show');
+                // Set default dates
+                const endDate = new Date();
+                const startDate = new Date();
+                startDate.setDate(startDate.getDate() - 7); // Default to 1 week
+
+                document.getElementById('startDate').valueAsDate = startDate;
+                document.getElementById('endDate').valueAsDate = endDate;
+            } else {
+                customInputs.classList.remove('show');
+                customStartDate = null;
+                customEndDate = null;
+                applyFilters();
+            }
+        }
+
+        // Apply custom date range
+        function applyCustomDateRange() {
+            const startDateInput = document.getElementById('startDate').value;
+            const endDateInput = document.getElementById('endDate').value;
+
+            if (!startDateInput || !endDateInput) {
+                alert('Please select both start and end dates');
+                return;
+            }
+
+            customStartDate = new Date(startDateInput);
+            customEndDate = new Date(endDateInput);
+
+            if (customStartDate > customEndDate) {
+                alert('Start date must be before end date');
+                return;
+            }
+
+            applyFilters();
+        }
+
+        // Index filter change handler
+        function handleIndexChange(selectedIndex) {
+            currentIndexFilter = selectedIndex;
+            applyFilters();
+        }
+
+        // Apply all filters (combined index and date filtering)
+        function applyFilters() {
+            const tableRows = document.querySelectorAll('.orders-table tbody tr');
+            let visibleCount = 0;
+            let totalValue = 0;
+
+            const now = new Date();
+            let dateFilterStart = null;
+
+            // Calculate date range based on filter
+            if (currentDateFilter === '1week') {
+                dateFilterStart = new Date(now);
+                dateFilterStart.setDate(dateFilterStart.getDate() - 7);
+            } else if (currentDateFilter === '2weeks') {
+                dateFilterStart = new Date(now);
+                dateFilterStart.setDate(dateFilterStart.getDate() - 14);
+            } else if (currentDateFilter === '1month') {
+                dateFilterStart = new Date(now);
+                dateFilterStart.setMonth(dateFilterStart.getMonth() - 1);
+            } else if (currentDateFilter === '3months') {
+                dateFilterStart = new Date(now);
+                dateFilterStart.setMonth(dateFilterStart.getMonth() - 3);
+            } else if (currentDateFilter === 'custom') {
+                dateFilterStart = customStartDate;
+            }
+
+            tableRows.forEach(row => {
+                const symbolCell = row.querySelector('.symbol');
+                const dateCell = row.querySelector('.date');
+                const valueCell = row.querySelector('.value');
+
+                if (!symbolCell || !dateCell) return;
+
+                const symbol = symbolCell.textContent.trim();
+                const dateText = dateCell.textContent.trim();
+                const rowDate = new Date(dateText);
+
+                // Apply index filter
+                let passesIndexFilter = true;
+                if (currentIndexFilter === 'nifty50') {
+                    passesIndexFilter = indexMapping['nifty50'].includes(symbol);
+                } else if (currentIndexFilter === 'niftymidcap' || currentIndexFilter === 'niftysmallcap') {
+                    passesIndexFilter = !indexMapping['nifty50'].includes(symbol);
+                }
+                // 'all' and 'nifty500' pass all symbols
+
+                // Apply date filter
+                let passesDateFilter = true;
+                if (currentDateFilter !== 'all') {
+                    if (currentDateFilter === 'custom') {
+                        passesDateFilter = rowDate >= dateFilterStart && rowDate <= customEndDate;
+                    } else {
+                        passesDateFilter = rowDate >= dateFilterStart;
+                    }
+                }
+
+                // Show row only if it passes both filters
+                if (passesIndexFilter && passesDateFilter) {
+                    row.style.display = '';
+                    visibleCount++;
+
+                    // Calculate total value
+                    if (valueCell) {
+                        const valueText = valueCell.textContent.trim();
+                        const match = valueText.match(/₹([\d,]+\.?\d*)/);
+                        if (match) {
+                            const value = parseFloat(match[1].replace(/,/g, ''));
+                            if (!isNaN(value)) {
+                                totalValue += value;
+                            }
+                        }
+                    }
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Update the summary cards
+            updateFilteredSummary(visibleCount, totalValue);
+        }
+
+        function updateFilteredSummary(count, totalValue) {
+            const totalCard = document.querySelector('.card.primary .card-value');
+            const totalSubtitle = document.querySelector('.card.primary .card-subtitle');
+            const valueCard = document.querySelector('.card.success .card-value');
+
+            if (totalCard) {
+                totalCard.textContent = count;
+            }
+
+            if (valueCard && totalValue > 0) {
+                valueCard.textContent = `₹${totalValue.toFixed(2)}`;
+            }
+
+            if (totalSubtitle) {
+                let filterDesc = '';
+
+                // Add index filter description
+                if (currentIndexFilter !== 'all') {
+                    const indexDisplayNames = {
+                        'nifty50': 'Nifty 50',
+                        'nifty500': 'Nifty 500',
+                        'niftymidcap': 'Nifty Midcap',
+                        'niftysmallcap': 'Nifty Smallcap'
+                    };
+                    filterDesc = indexDisplayNames[currentIndexFilter];
+                }
+
+                // Add date filter description
+                if (currentDateFilter !== 'all') {
+                    const dateDisplayNames = {
+                        '1week': 'Last 1 Week',
+                        '2weeks': 'Last 2 Weeks',
+                        '1month': 'Last 1 Month',
+                        '3months': 'Last 3 Months',
+                        'custom': 'Custom Range'
+                    };
+
+                    if (filterDesc) {
+                        filterDesc += ' • ' + dateDisplayNames[currentDateFilter];
+                    } else {
+                        filterDesc = dateDisplayNames[currentDateFilter];
+                    }
+                }
+
+                if (filterDesc) {
+                    totalSubtitle.textContent = filterDesc;
+                } else {
+                    totalSubtitle.textContent = `Last {{ summary.get('days', 7) }} days`;
+                }
+            }
+        }
+
+        // Store original summary values
+        window.addEventListener('DOMContentLoaded', function() {
+            const totalCard = document.querySelector('.card.primary .card-value');
+            if (totalCard) {
+                window.originalTotal = totalCard.textContent;
+            }
+
+            // Set today as max date for custom date inputs
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('startDate').setAttribute('max', today);
+            document.getElementById('endDate').setAttribute('max', today);
+        });
+
+        // ==================== Fetch Fresh Data Functions ====================
+
+        // Open fetch modal
+        function openFetchModal() {
+            document.getElementById('fetchModal').classList.add('show');
+            document.getElementById('fetchStatus').classList.remove('show');
+        }
+
+        // Close fetch modal
+        function closeFetchModal() {
+            document.getElementById('fetchModal').classList.remove('show');
+        }
+
+        // Set days in input
+        function setDays(days) {
+            document.getElementById('daysInput').value = days;
+
+            // Show warning for large requests
+            const statusDiv = document.getElementById('fetchStatus');
+            if (days >= 90) {
+                showStatus('info', `⚠️ Large request: Fetching ${days} days may take 30-60 seconds. Please be patient.`);
+            } else if (days >= 60) {
+                showStatus('info', `ℹ️ Medium request: Fetching ${days} days may take 20-40 seconds.`);
+            } else {
+                statusDiv.classList.remove('show');
+            }
+        }
+
+        // Fetch fresh data from NSE API
+        async function fetchFreshData() {
+            const daysInput = document.getElementById('daysInput');
+            const days = parseInt(daysInput.value);
+            const fetchBtn = document.getElementById('fetchBtn');
+            const statusDiv = document.getElementById('fetchStatus');
+            const fetchDataBtn = document.querySelector('.fetch-data-btn');
+
+            // Validate input
+            if (isNaN(days) || days < 1 || days > 365) {
+                showStatus('error', 'Please enter a valid number of days (1-365)');
+                return;
+            }
+
+            // Disable buttons and show loading
+            fetchBtn.disabled = true;
+            fetchBtn.textContent = 'Fetching...';
+            fetchDataBtn.classList.add('loading');
+
+            // Show appropriate message based on days
+            let estimatedTime = '10-20 seconds';
+            if (days > 60) {
+                estimatedTime = '30-60 seconds';
+            } else if (days > 30) {
+                estimatedTime = '20-40 seconds';
+            }
+
+            showStatus('info', `Fetching ${days} days of data from NSE API... Estimated time: ${estimatedTime}. Please wait...`);
+
+            // Create abort controller with longer timeout for large requests
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 120000); // 120 second timeout
+
+            try {
+                console.log(`Starting fetch for ${days} days...`);
+
+                // Call the API with extended timeout
+                const response = await fetch('/api/fetch-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        days: days,
+                        threshold: 500,
+                        enable_telegram: false  // Don't send Telegram on manual fetch
+                    }),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                console.log('Response received:', response.status);
+
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                console.log('Result parsed:', result);
+
+                if (result.success) {
+                    showStatus('success', `✓ Success! Fetched ${result.data.length} announcements from ${result.days_fetched} days. Refreshing dashboard...`);
+
+                    // Update the dashboard with fresh data
+                    updateDashboard(result.data, result.summary, result.timestamp);
+
+                    // Close modal after 2 seconds
+                    setTimeout(() => {
+                        closeFetchModal();
+                        // Reset filters to show all data
+                        document.getElementById('indexSelect').value = 'all';
+                        document.getElementById('dateSelect').value = 'all';
+                        currentIndexFilter = 'all';
+                        currentDateFilter = 'all';
+                        applyFilters();
+                    }, 2000);
+                } else {
+                    console.error('Fetch failed:', result.error);
+                    showStatus('error', `Error: ${result.error || 'Unknown error occurred'}`);
+                }
+            } catch (error) {
+                clearTimeout(timeoutId);
+                console.error('Fetch error:', error);
+
+                if (error.name === 'AbortError') {
+                    showStatus('error', `Request timeout: Data fetching took longer than 2 minutes. Try fewer days or check your network connection.`);
+                } else {
+                    showStatus('error', `Network error: ${error.message}. Check console for details.`);
+                }
+            } finally {
+                // Re-enable buttons
+                fetchBtn.disabled = false;
+                fetchBtn.textContent = 'Fetch Data';
+                fetchDataBtn.classList.remove('loading');
+                console.log('Fetch operation completed');
+            }
+        }
+
+        // Show status message
+        function showStatus(type, message) {
+            const statusDiv = document.getElementById('fetchStatus');
+            statusDiv.className = `status-message show ${type}`;
+            statusDiv.textContent = message;
+        }
+
+        // Update dashboard with fresh data
+        function updateDashboard(orders, summary, timestamp) {
+            // Update timestamp
+            const timestampEl = document.querySelector('.timestamp');
+            if (timestampEl) {
+                timestampEl.textContent = `Last Updated: ${timestamp}`;
+            }
+
+            // Update summary cards
+            const totalCard = document.querySelector('.card.primary .card-value');
+            const totalValueCard = document.querySelector('.card.success .card-value');
+            const avgCard = document.querySelector('.card.warning .card-value');
+            const companiesCard = document.querySelector('.card.info .card-value');
+
+            if (totalCard) totalCard.textContent = summary.total_announcements || orders.length;
+            if (totalValueCard) totalValueCard.textContent = `₹${(summary.total_value_crores || 0).toFixed(2)}`;
+            if (avgCard) avgCard.textContent = `₹${(summary.average_order_value || 0).toFixed(2)}`;
+            if (companiesCard) companiesCard.textContent = summary.unique_companies || 0;
+
+            // Update table
+            const tbody = document.querySelector('.orders-table tbody');
+            if (tbody && orders.length > 0) {
+                tbody.innerHTML = orders.map(order => `
+                    <tr>
+                        <td><span class="symbol">${order.symbol || 'N/A'}</span></td>
+                        <td><span class="company-name">${order.company_name || 'N/A'}</span></td>
+                        <td><span class="date">${order.announcement_date || 'N/A'}</span></td>
+                        <td>
+                            ${order.order_value_crores && order.order_value_crores > 0 ? `
+                                <span class="value ${order.order_value_crores > 100 ? 'high' : order.order_value_crores > 50 ? 'medium' : 'low'}">
+                                    ₹${order.order_value_crores.toFixed(2)} Cr
+                                </span>
+                            ` : '<span class="value low">Not found</span>'}
+                        </td>
+                        <td><span class="subject">${(order.subject || '').substring(0, 80)}${order.subject && order.subject.length > 80 ? '...' : ''}</span></td>
+                        <td>
+                            ${order.local_pdf_path ?
+                                '<span class="badge success">✓ PDF Downloaded</span>' :
+                                '<span class="badge warning">⚠ No PDF</span>'}
+                        </td>
+                        <td>
+                            ${order.local_pdf_path ?
+                                `<a href="/api/pdf/${order.local_pdf_path.split('/').pop()}" target="_blank" class="pdf-link" title="Open PDF in new tab">📄 View PDF</a>` :
+                                '<span class="no-pdf-text">—</span>'}
+                        </td>
+                    </tr>
+                `).join('');
+            } else if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="7" class="no-data"><p>No order announcements found.</p></td></tr>';
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('fetchModal');
+            if (event.target === modal) {
+                closeFetchModal();
+            }
+        }
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeFetchModal();
+            }
+        });
+    </script>
 </body>
 </html>

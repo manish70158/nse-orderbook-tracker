@@ -45,6 +45,9 @@ orderbook_tracker.db
 processed_announcements.json
 *.log
 
+# Downloaded PDFs (auto-cleaned after retention period)
+scripts/nse_order_tracker_v2/downloads/nse_pdfs/*.pdf
+
 # Temporary files
 temp_announcement.pdf
 *.tmp

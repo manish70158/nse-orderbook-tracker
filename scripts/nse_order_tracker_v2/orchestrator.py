@@ -5,8 +5,9 @@ Orchestrator - Main pipeline that coordinates scraping, parsing, and data proces
 
 import logging
 import json
+import os
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Dict
 import pandas as pd
 
@@ -29,7 +30,8 @@ class OrderBookOrchestrator:
         download_dir: str = 'downloads/nse_pdfs',
         output_dir: str = 'output',
         enable_telegram: bool = True,
-        value_threshold: float = 500.0
+        value_threshold: float = 500.0,
+        pdf_retention_days: int = 7
     ):
         """
         Initialize orchestrator
@@ -39,11 +41,14 @@ class OrderBookOrchestrator:
             output_dir: Directory for output files
             enable_telegram: Enable Telegram notifications
             value_threshold: Minimum order value for alerts (in Crores)
+            pdf_retention_days: Days to keep old PDFs (default: 7)
         """
         self.scraper = NSEAPIScraper(download_dir=download_dir)
         self.parser = PDFParser()
+        self.download_dir = Path(download_dir)
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.pdf_retention_days = pdf_retention_days
 
         self.announcements: List[Dict] = []
         self.parsed_orders: Dict[str, OrderInfo] = {}
@@ -60,6 +65,43 @@ class OrderBookOrchestrator:
             except ValueError as e:
                 logger.warning(f"Telegram notifications disabled: {e}")
                 self.telegram_enabled = False
+
+    def cleanup_old_pdfs(self):
+        """
+        Clean up PDF files older than retention period
+
+        Deletes PDFs from download directory that are older than
+        pdf_retention_days to prevent disk space accumulation.
+        """
+        if not self.download_dir.exists():
+            return
+
+        cutoff_date = datetime.now() - timedelta(days=self.pdf_retention_days)
+        deleted_count = 0
+        total_size = 0
+
+        logger.info(f"Cleaning up PDFs older than {self.pdf_retention_days} days (before {cutoff_date.strftime('%Y-%m-%d')})")
+
+        for pdf_file in self.download_dir.glob("*.pdf"):
+            try:
+                # Get file modification time
+                file_mtime = datetime.fromtimestamp(pdf_file.stat().st_mtime)
+
+                if file_mtime < cutoff_date:
+                    file_size = pdf_file.stat().st_size
+                    pdf_file.unlink()
+                    deleted_count += 1
+                    total_size += file_size
+                    logger.debug(f"Deleted: {pdf_file.name} (modified: {file_mtime.strftime('%Y-%m-%d')})")
+
+            except Exception as e:
+                logger.warning(f"Failed to delete {pdf_file.name}: {e}")
+
+        if deleted_count > 0:
+            size_mb = total_size / (1024 * 1024)
+            logger.info(f"✓ Cleaned up {deleted_count} old PDF(s), freed {size_mb:.2f} MB")
+        else:
+            logger.info("✓ No old PDFs to clean up")
 
     def scrape_announcements(
         self,
@@ -263,7 +305,7 @@ class OrderBookOrchestrator:
         print(f"{'='*60}\n")
 
     def send_telegram_notifications(self, data: List[Dict], summary: Dict):
-        """Send Telegram notifications for high-value orders"""
+        """Send Telegram notifications including dashboard-style complete report"""
         logger.info("\n" + "="*60)
         logger.info("STEP 6: SENDING TELEGRAM NOTIFICATIONS")
         logger.info("="*60)
@@ -280,30 +322,57 @@ class OrderBookOrchestrator:
                         'order_value': value,
                         'description': item.get('subject', ''),
                         'announcement_date': item.get('announcement_date', ''),
-                        'pdf_url': item.get('pdf_url', '')
+                        'pdf_url': item.get('pdf_url', ''),
+                        'pdf_path': item.get('local_pdf_path', '')  # For PDF attachments
                     })
 
-            # Send summary notification
-            if telegram_orders:
+            if not telegram_orders:
+                logger.info("No orders with values found to notify")
+                return
+
+            # Part 1: Send comprehensive dashboard-style summary (ALL orders)
+            logger.info("\n📊 Sending dashboard-style complete report...")
+            dashboard_success = self.notifier.send_dashboard_summary(
+                orders=data,  # Send all data, not just filtered
+                summary=summary,
+                days=summary.get('days', 3),
+                timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            )
+
+            if dashboard_success:
+                logger.info("✓ Dashboard summary sent successfully")
+                logger.info(f"  - Sent report with {len(data)} total announcements")
+            else:
+                logger.warning("✗ Failed to send dashboard summary")
+
+            # Part 2: Send high-value order alerts with PDF attachments (filtered)
+            high_value_orders = [o for o in telegram_orders if o['order_value'] >= self.value_threshold]
+
+            if high_value_orders:
+                logger.info(f"\n🔥 Sending high-value order alerts ({len(high_value_orders)} orders ≥₹{self.value_threshold} Cr)...")
+
                 date_range = f"{summary['date_range']['start']} to {summary['date_range']['end']}"
-                success = self.notifier.send_order_summary(
-                    telegram_orders,
+                alert_success = self.notifier.send_order_summary(
+                    high_value_orders,
                     date=date_range,
-                    filter_by_value=True
+                    filter_by_value=True,
+                    attach_pdfs=True
                 )
 
-                if success:
-                    logger.info(f"✓ Telegram notification sent successfully")
-                    # Count high-value orders
-                    high_value_count = sum(1 for o in telegram_orders if o['order_value'] >= self.value_threshold)
-                    if high_value_count > 0:
-                        logger.info(f"  - {high_value_count} high-value orders (≥₹{self.value_threshold} Cr)")
-                    else:
-                        logger.info(f"  - No orders above ₹{self.value_threshold} Cr threshold")
+                if alert_success:
+                    logger.info(f"✓ High-value alerts sent with PDF attachments")
+                    logger.info(f"  - {len(high_value_orders)} orders above ₹{self.value_threshold} Cr threshold")
                 else:
-                    logger.warning("✗ Failed to send Telegram notification")
+                    logger.warning("✗ Failed to send high-value alerts")
             else:
-                logger.info("No orders with values found to notify")
+                logger.info(f"ℹ️  No orders above ₹{self.value_threshold} Cr threshold")
+
+            # Summary
+            logger.info("\n" + "="*60)
+            logger.info("TELEGRAM NOTIFICATIONS SUMMARY:")
+            logger.info(f"  ✓ Dashboard report: {'Sent' if dashboard_success else 'Failed'}")
+            logger.info(f"  ✓ High-value alerts: {'Sent' if high_value_orders and alert_success else 'None/Failed'}")
+            logger.info("="*60)
 
         except Exception as e:
             logger.error(f"Error sending Telegram notifications: {e}", exc_info=True)
@@ -324,6 +393,9 @@ class OrderBookOrchestrator:
         logger.info(f"Search: '{search_term}', Days: {days_back}\n")
 
         try:
+            # Step 0: Cleanup old PDFs
+            self.cleanup_old_pdfs()
+
             # Step 1: Scrape announcements
             self.scrape_announcements(search_term, days_back)
 
@@ -378,6 +450,7 @@ def main():
     parser.add_argument('--days', type=int, default=3, help='Days to look back (default: 3)')
     parser.add_argument('--search', type=str, default='awarding of order', help='Search term (default: "awarding of order")')
     parser.add_argument('--threshold', type=float, default=500, help='Order value threshold in Crores (default: 500)')
+    parser.add_argument('--retention-days', type=int, default=7, help='Days to keep old PDFs before cleanup (default: 7)')
     parser.add_argument('--telegram', action='store_true', default=True, help='Enable Telegram notifications (default: enabled)')
     parser.add_argument('--no-telegram', action='store_true', help='Disable Telegram notifications')
     parser.add_argument('--output-dir', type=str, default='output', help='Output directory (default: output)')
@@ -392,7 +465,8 @@ def main():
         download_dir=args.download_dir,
         output_dir=args.output_dir,
         enable_telegram=enable_telegram,
-        value_threshold=args.threshold
+        value_threshold=args.threshold,
+        pdf_retention_days=args.retention_days
     )
 
     orchestrator.run(

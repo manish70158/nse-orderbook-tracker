@@ -35,10 +35,10 @@ jobs:
           cd scripts/nse_order_tracker_v2
           pip install -r requirements.txt
 
-      - name: Run V2 API scraper
+      - name: Run V2 API scraper with auto-cleanup
         run: |
           cd scripts/nse_order_tracker_v2
-          python orchestrator.py --days 3
+          python orchestrator.py --days 3 --retention-days 7
         env:
           PYTHONUNBUFFERED: 1
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -58,7 +58,8 @@ jobs:
           git config --global user.name 'GitHub Actions Bot'
           git config --global user.email 'actions@github.com'
           cd scripts/nse_order_tracker_v2
-          git add output/*.json output/*.xlsx downloads/nse_pdfs/*.pdf || true
+          # Only commit JSON/Excel outputs, not PDFs (they get auto-cleaned)
+          git add output/*.json output/*.xlsx || true
           git diff --quiet && git diff --staged --quiet || (git commit -m "Update V2 order book data (3 days) - $(date +'%Y-%m-%d %H:%M:%S')" && git push)
 
       - name: Send notification on failure
