@@ -306,6 +306,113 @@ class TelegramNotifier:
 
         return self.send_message(message)
 
+    def send_dashboard_summary(self, orders: List[Dict], summary: Dict,
+                               days: int = 3, timestamp: Optional[str] = None) -> bool:
+        """
+        Send comprehensive dashboard-style summary with all orders in formatted table
+        Similar to the web dashboard interface
+
+        Args:
+            orders: List of all order dictionaries
+            summary: Summary statistics dictionary
+            days: Number of days covered
+            timestamp: Timestamp string (default: now)
+
+        Returns:
+            True if successful
+        """
+        if not timestamp:
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        # Header with emoji
+        message = "📊 <b>NSE Order Book Tracker - Daily Report</b>\n"
+        message += f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+
+        # Timestamp
+        message += f"🕐 <i>Last Updated: {timestamp}</i>\n"
+        message += f"📅 <i>Period: Last {days} days</i>\n\n"
+
+        # Summary Cards
+        message += "📈 <b>SUMMARY</b>\n"
+        message += f"━━━━━━━━━━━━━━━━━━━━━\n"
+        message += f"📋 Total Announcements: <b>{summary.get('total_announcements', 0)}</b>\n"
+        message += f"💰 Total Order Value: <b>₹{summary.get('total_value_crores', 0):.2f} Cr</b>\n"
+        message += f"📊 Average Order Size: <b>₹{summary.get('average_order_value', 0):.2f} Cr</b>\n"
+        message += f"🏢 Unique Companies: <b>{summary.get('unique_companies', 0)}</b>\n\n"
+
+        if not orders:
+            message += "ℹ️ <i>No order announcements found in this period.</i>\n\n"
+            message += f"🤖 <i>Automated Daily Report</i>"
+            return self.send_message(message)
+
+        # Orders Table Header
+        message += "📋 <b>ORDER DETAILS</b>\n"
+        message += f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+
+        # Split orders into chunks if too many (Telegram has 4096 char limit)
+        chunk_size = 10
+        total_orders = len(orders)
+
+        for chunk_start in range(0, total_orders, chunk_size):
+            chunk_end = min(chunk_start + chunk_size, total_orders)
+            chunk_orders = orders[chunk_start:chunk_end]
+
+            chunk_message = ""
+            if chunk_start > 0:
+                chunk_message = f"📋 <b>ORDER DETAILS (continued {chunk_start+1}-{chunk_end})</b>\n"
+                chunk_message += f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+
+            for i, order in enumerate(chunk_orders, chunk_start + 1):
+                symbol = order.get('symbol', 'N/A')
+                company = order.get('company_name', 'N/A')
+                date = order.get('announcement_date', 'N/A')
+                value = order.get('order_value_crores', 0)
+                subject = order.get('subject', '')[:80]  # Truncate
+                has_pdf = order.get('local_pdf_path') is not None
+
+                # Format order entry
+                chunk_message += f"<b>{i}. {symbol}</b>\n"
+                chunk_message += f"   🏢 {company}\n"
+                chunk_message += f"   📅 {date}\n"
+
+                if value and value > 0:
+                    # Color indicators using emojis
+                    if value > 100:
+                        indicator = "🟢"  # High value
+                    elif value > 50:
+                        indicator = "🟡"  # Medium value
+                    else:
+                        indicator = "🔵"  # Low value
+                    chunk_message += f"   💰 {indicator} <b>₹{value:.2f} Cr</b>\n"
+                else:
+                    chunk_message += f"   💰 <i>Value not found</i>\n"
+
+                if subject:
+                    chunk_message += f"   📝 {subject}{'...' if len(order.get('subject', '')) > 80 else ''}\n"
+
+                chunk_message += f"   📄 {'✓ PDF Available' if has_pdf else '⚠ No PDF'}\n"
+                chunk_message += "\n"
+
+            # Send chunk
+            if chunk_start == 0:
+                full_message = message + chunk_message
+            else:
+                full_message = chunk_message
+
+            # Add footer only to last chunk
+            if chunk_end >= total_orders:
+                full_message += f"━━━━━━━━━━━━━━━━━━━━━\n"
+                full_message += f"📊 Showing {total_orders} order(s)\n"
+                full_message += f"🔔 Threshold: ≥₹{self.value_threshold} Cr for alerts\n\n"
+                full_message += f"🤖 <i>Automated Daily Report</i>"
+
+            # Send this chunk
+            if not self.send_message(full_message):
+                logger.error(f"Failed to send message chunk {chunk_start}-{chunk_end}")
+                return False
+
+        return True
+
     def test_connection(self) -> bool:
         """
         Test Telegram bot connection

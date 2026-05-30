@@ -305,7 +305,7 @@ class OrderBookOrchestrator:
         print(f"{'='*60}\n")
 
     def send_telegram_notifications(self, data: List[Dict], summary: Dict):
-        """Send Telegram notifications for high-value orders"""
+        """Send Telegram notifications including dashboard-style complete report"""
         logger.info("\n" + "="*60)
         logger.info("STEP 6: SENDING TELEGRAM NOTIFICATIONS")
         logger.info("="*60)
@@ -326,28 +326,53 @@ class OrderBookOrchestrator:
                         'pdf_path': item.get('local_pdf_path', '')  # For PDF attachments
                     })
 
-            # Send summary notification with PDF attachments
-            if telegram_orders:
+            if not telegram_orders:
+                logger.info("No orders with values found to notify")
+                return
+
+            # Part 1: Send comprehensive dashboard-style summary (ALL orders)
+            logger.info("\n📊 Sending dashboard-style complete report...")
+            dashboard_success = self.notifier.send_dashboard_summary(
+                orders=data,  # Send all data, not just filtered
+                summary=summary,
+                days=summary.get('days', 3),
+                timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            )
+
+            if dashboard_success:
+                logger.info("✓ Dashboard summary sent successfully")
+                logger.info(f"  - Sent report with {len(data)} total announcements")
+            else:
+                logger.warning("✗ Failed to send dashboard summary")
+
+            # Part 2: Send high-value order alerts with PDF attachments (filtered)
+            high_value_orders = [o for o in telegram_orders if o['order_value'] >= self.value_threshold]
+
+            if high_value_orders:
+                logger.info(f"\n🔥 Sending high-value order alerts ({len(high_value_orders)} orders ≥₹{self.value_threshold} Cr)...")
+
                 date_range = f"{summary['date_range']['start']} to {summary['date_range']['end']}"
-                success = self.notifier.send_order_summary(
-                    telegram_orders,
+                alert_success = self.notifier.send_order_summary(
+                    high_value_orders,
                     date=date_range,
                     filter_by_value=True,
                     attach_pdfs=True
                 )
 
-                if success:
-                    logger.info(f"✓ Telegram notification sent successfully")
-                    # Count high-value orders
-                    high_value_count = sum(1 for o in telegram_orders if o['order_value'] >= self.value_threshold)
-                    if high_value_count > 0:
-                        logger.info(f"  - {high_value_count} high-value orders (≥₹{self.value_threshold} Cr)")
-                    else:
-                        logger.info(f"  - No orders above ₹{self.value_threshold} Cr threshold")
+                if alert_success:
+                    logger.info(f"✓ High-value alerts sent with PDF attachments")
+                    logger.info(f"  - {len(high_value_orders)} orders above ₹{self.value_threshold} Cr threshold")
                 else:
-                    logger.warning("✗ Failed to send Telegram notification")
+                    logger.warning("✗ Failed to send high-value alerts")
             else:
-                logger.info("No orders with values found to notify")
+                logger.info(f"ℹ️  No orders above ₹{self.value_threshold} Cr threshold")
+
+            # Summary
+            logger.info("\n" + "="*60)
+            logger.info("TELEGRAM NOTIFICATIONS SUMMARY:")
+            logger.info(f"  ✓ Dashboard report: {'Sent' if dashboard_success else 'Failed'}")
+            logger.info(f"  ✓ High-value alerts: {'Sent' if high_value_orders and alert_success else 'None/Failed'}")
+            logger.info("="*60)
 
         except Exception as e:
             logger.error(f"Error sending Telegram notifications: {e}", exc_info=True)
