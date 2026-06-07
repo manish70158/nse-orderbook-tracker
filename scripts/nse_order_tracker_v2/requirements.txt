@@ -19,3 +19,6 @@ python-dateutil==2.8.2
 
 # Utilities
 python-dotenv==1.0.0
+
+# Telegram Bot (for interactive real-time fetching)
+python-telegram-bot==20.7

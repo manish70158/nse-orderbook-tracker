@@ -331,12 +331,13 @@ class OrderBookOrchestrator:
                 return
 
             # Part 1: Send comprehensive dashboard-style summary (ALL orders)
-            logger.info("\n📊 Sending dashboard-style complete report...")
+            logger.info("\n📊 Sending dashboard-style complete report with interactive menu...")
             dashboard_success = self.notifier.send_dashboard_summary(
                 orders=data,  # Send all data, not just filtered
                 summary=summary,
                 days=summary.get('days', 3),
-                timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                send_interactive_menu=True  # Include interactive buttons
             )
 
             if dashboard_success:

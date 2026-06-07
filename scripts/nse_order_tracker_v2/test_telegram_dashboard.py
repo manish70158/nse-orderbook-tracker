@@ -102,17 +102,18 @@ def test_dashboard_notification():
             }
         }
 
-        logger.info("\n2. Sending dashboard-style summary...")
+        logger.info("\n2. Sending dashboard-style summary with table format...")
         logger.info(f"   - Total orders: {len(sample_orders)}")
         logger.info(f"   - Total value: ₹{sample_summary['total_value_crores']:.2f} Cr")
         logger.info(f"   - Companies: {sample_summary['unique_companies']}")
 
-        # Send dashboard summary
+        # Send dashboard summary with interactive menu
         success = notifier.send_dashboard_summary(
             orders=sample_orders,
             summary=sample_summary,
             days=3,
-            timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            send_interactive_menu=True  # Send buttons for date selection
         )
 
         if success:

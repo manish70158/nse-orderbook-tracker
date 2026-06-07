@@ -307,16 +307,18 @@ class TelegramNotifier:
         return self.send_message(message)
 
     def send_dashboard_summary(self, orders: List[Dict], summary: Dict,
-                               days: int = 3, timestamp: Optional[str] = None) -> bool:
+                               days: int = 3, timestamp: Optional[str] = None,
+                               send_interactive_menu: bool = True) -> bool:
         """
         Send comprehensive dashboard-style summary with all orders in formatted table
-        Similar to the web dashboard interface
+        Similar to the web dashboard interface, with optional interactive menu
 
         Args:
             orders: List of all order dictionaries
             summary: Summary statistics dictionary
             days: Number of days covered
             timestamp: Timestamp string (default: now)
+            send_interactive_menu: Send interactive buttons for date selection (default: True)
 
         Returns:
             True if successful
@@ -343,75 +345,145 @@ class TelegramNotifier:
         if not orders:
             message += "ℹ️ <i>No order announcements found in this period.</i>\n\n"
             message += f"🤖 <i>Automated Daily Report</i>"
-            return self.send_message(message)
 
-        # Orders Table Header
-        message += "📋 <b>ORDER DETAILS</b>\n"
+            # Send interactive menu even if no orders
+            if send_interactive_menu:
+                self.send_message(message)
+                return self.send_interactive_menu()
+            else:
+                return self.send_message(message)
+
+        # Orders Table Header - Using monospace for better alignment
+        message += "📋 <b>ORDER DETAILS (Table Format)</b>\n"
         message += f"━━━━━━━━━━━━━━━━━━━━━\n\n"
 
-        # Split orders into chunks if too many (Telegram has 4096 char limit)
-        chunk_size = 10
-        total_orders = len(orders)
+        # Create table with monospace formatting
+        message += "<pre>"
+        message += "╔═══════════════════════════════════════════════╗\n"
+        message += "║  #  Symbol    Value(Cr)  Date        PDF      ║\n"
+        message += "╠═══════════════════════════════════════════════╣\n"
 
-        for chunk_start in range(0, total_orders, chunk_size):
-            chunk_end = min(chunk_start + chunk_size, total_orders)
-            chunk_orders = orders[chunk_start:chunk_end]
+        # Table rows - limited to first 15 for readability
+        display_orders = orders[:15]
+        for i, order in enumerate(display_orders, 1):
+            symbol = order.get('symbol', 'N/A')[:8].ljust(8)  # Pad to 8 chars
+            value = order.get('order_value_crores', 0)
+            date = order.get('announcement_date', 'N/A')[-5:]  # Last 5 chars (MM-DD)
+            has_pdf = '✓' if order.get('local_pdf_path') else '✗'
 
-            chunk_message = ""
-            if chunk_start > 0:
-                chunk_message = f"📋 <b>ORDER DETAILS (continued {chunk_start+1}-{chunk_end})</b>\n"
-                chunk_message += f"━━━━━━━━━━━━━━━━━━━━━\n\n"
-
-            for i, order in enumerate(chunk_orders, chunk_start + 1):
-                symbol = order.get('symbol', 'N/A')
-                company = order.get('company_name', 'N/A')
-                date = order.get('announcement_date', 'N/A')
-                value = order.get('order_value_crores', 0)
-                subject = order.get('subject', '')[:80]  # Truncate
-                has_pdf = order.get('local_pdf_path') is not None
-
-                # Format order entry
-                chunk_message += f"<b>{i}. {symbol}</b>\n"
-                chunk_message += f"   🏢 {company}\n"
-                chunk_message += f"   📅 {date}\n"
-
-                if value and value > 0:
-                    # Color indicators using emojis
-                    if value > 100:
-                        indicator = "🟢"  # High value
-                    elif value > 50:
-                        indicator = "🟡"  # Medium value
-                    else:
-                        indicator = "🔵"  # Low value
-                    chunk_message += f"   💰 {indicator} <b>₹{value:.2f} Cr</b>\n"
-                else:
-                    chunk_message += f"   💰 <i>Value not found</i>\n"
-
-                if subject:
-                    chunk_message += f"   📝 {subject}{'...' if len(order.get('subject', '')) > 80 else ''}\n"
-
-                chunk_message += f"   📄 {'✓ PDF Available' if has_pdf else '⚠ No PDF'}\n"
-                chunk_message += "\n"
-
-            # Send chunk
-            if chunk_start == 0:
-                full_message = message + chunk_message
+            # Format value with indicator
+            if value > 100:
+                val_str = f"🟢{value:7.1f}"
+            elif value > 50:
+                val_str = f"🟡{value:7.1f}"
             else:
-                full_message = chunk_message
+                val_str = f"🔵{value:7.1f}"
 
-            # Add footer only to last chunk
-            if chunk_end >= total_orders:
-                full_message += f"━━━━━━━━━━━━━━━━━━━━━\n"
-                full_message += f"📊 Showing {total_orders} order(s)\n"
-                full_message += f"🔔 Threshold: ≥₹{self.value_threshold} Cr for alerts\n\n"
-                full_message += f"🤖 <i>Automated Daily Report</i>"
+            message += f"║ {i:2d}  {symbol}  {val_str}  {date}  {has_pdf:^4}  ║\n"
 
-            # Send this chunk
-            if not self.send_message(full_message):
-                logger.error(f"Failed to send message chunk {chunk_start}-{chunk_end}")
-                return False
+        message += "╚═══════════════════════════════════════════════╝"
+        message += "</pre>\n\n"
+
+        if len(orders) > 15:
+            message += f"<i>Showing 15 of {len(orders)} orders (top by date)</i>\n\n"
+
+        # Detailed list (first 5 orders)
+        message += "📋 <b>DETAILED VIEW (Top 5)</b>\n"
+        message += f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+
+        for i, order in enumerate(orders[:5], 1):
+            symbol = order.get('symbol', 'N/A')
+            company = order.get('company_name', 'N/A')
+            date = order.get('announcement_date', 'N/A')
+            value = order.get('order_value_crores', 0)
+            subject = order.get('subject', '')[:60]  # Truncate
+            has_pdf = order.get('local_pdf_path') is not None
+
+            # Format order entry
+            message += f"<b>{i}. {symbol}</b> - {company[:25]}\n"
+            message += f"   📅 {date}  "
+
+            if value and value > 0:
+                if value > 100:
+                    indicator = "🟢"
+                elif value > 50:
+                    indicator = "🟡"
+                else:
+                    indicator = "🔵"
+                message += f"💰 {indicator} <b>₹{value:.2f} Cr</b>\n"
+            else:
+                message += f"💰 <i>Value N/A</i>\n"
+
+            if subject:
+                message += f"   📝 {subject}...\n"
+
+            message += f"   📄 {'✓ PDF' if has_pdf else '✗ No PDF'}\n\n"
+
+        # Footer
+        message += f"━━━━━━━━━━━━━━━━━━━━━\n"
+        message += f"📊 Total: {len(orders)} order(s)\n"
+        message += f"🔔 Threshold: ≥₹{self.value_threshold} Cr for alerts\n\n"
+        message += f"🤖 <i>Automated Daily Report</i>"
+
+        # Send the main message
+        if not self.send_message(message):
+            logger.error("Failed to send dashboard summary")
+            return False
+
+        # Send interactive menu for date range selection
+        if send_interactive_menu:
+            return self.send_interactive_menu()
 
         return True
+
+    def send_interactive_menu(self) -> bool:
+        """
+        Send interactive menu with inline keyboard buttons for date range selection
+
+        Returns:
+            True if successful
+        """
+        url = f"{self.api_url}/sendMessage"
+
+        message = "🔍 <b>Quick Access Menu</b>\n\n"
+        message += "Select a date range to fetch fresh data:\n"
+        message += "• Get latest orders for your chosen period\n"
+        message += "• Receive updated report instantly\n\n"
+        message += "<i>Note: This requires manual trigger via dashboard</i>\n"
+        message += "Visit: http://your-dashboard-url.com"
+
+        # Create inline keyboard with buttons
+        keyboard = {
+            "inline_keyboard": [
+                [
+                    {"text": "📅 Last 1 Week", "url": "http://your-dashboard-url.com"},
+                    {"text": "📅 Last 2 Weeks", "url": "http://your-dashboard-url.com"}
+                ],
+                [
+                    {"text": "📅 Last 1 Month", "url": "http://your-dashboard-url.com"},
+                    {"text": "📅 Last 3 Months", "url": "http://your-dashboard-url.com"}
+                ],
+                [
+                    {"text": "🌐 Open Dashboard", "url": "http://your-dashboard-url.com"}
+                ]
+            ]
+        }
+
+        payload = {
+            "chat_id": self.chat_id,
+            "text": message,
+            "parse_mode": "HTML",
+            "reply_markup": keyboard
+        }
+
+        try:
+            response = requests.post(url, json=payload, timeout=10)
+            response.raise_for_status()
+            logger.info("Interactive menu sent successfully")
+            return True
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to send interactive menu: {e}")
+            return False
 
     def test_connection(self) -> bool:
         """
