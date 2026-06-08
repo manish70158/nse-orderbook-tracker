@@ -1,0 +1,5 @@
+# Additional dependencies for interactive Telegram bot server
+# Install these only if you want to run telegram_bot_server.py
+
+# Telegram Bot (for interactive real-time fetching)
+python-telegram-bot==20.7

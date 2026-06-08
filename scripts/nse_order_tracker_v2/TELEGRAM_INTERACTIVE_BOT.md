@@ -28,11 +28,11 @@ This guide shows you how to set up the **interactive Telegram bot** that fetches
 cd scripts/nse_order_tracker_v2
 source venv/bin/activate
 
-# Install the telegram bot library
-pip install python-telegram-bot==20.7
-
-# Or install all requirements
+# Install base requirements (if not already installed)
 pip install -r requirements.txt
+
+# Install bot-specific dependencies
+pip install -r requirements-bot.txt
 ```
 
 ### Step 2: Set Credentials
